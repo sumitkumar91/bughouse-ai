@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { BughouseGame } from "@/engine/bughouseGame";
 import { BughouseMCTS } from "@/ai/mcts";
 import { BoardId, BughouseMove, ReservePiece } from "@/engine/types";
@@ -207,9 +208,16 @@ export default function BughouseApp() {
       <header className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs dark:shadow-lg shrink-0 transition-colors">
         {/* Title & Live Status */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-gradient-to-br from-amber-500 to-indigo-600 shadow-xs">
-              <Cpu className="w-4 h-4 text-white font-bold" />
+          <div className="flex items-center gap-2.5">
+            <div className="relative w-7 h-7 rounded-lg overflow-hidden shadow-xs ring-1 ring-slate-900/10 dark:ring-white/15 shrink-0 bg-black">
+              <Image
+                src="/logo.png"
+                alt="Bughouse AI Logo"
+                fill
+                sizes="28px"
+                className="object-cover"
+                priority
+              />
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">BUGHOUSE AI</span>

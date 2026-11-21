@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/logo.png" alt="Bughouse AI Logo" width="160" style="border-radius: 20px;" />
+</p>
+
 # Bughouse AI: Multi-Agent Monte Carlo Tree Search
 
 An autonomous, tournament-grade artificial intelligence engine for **Bughouse Chess** powered by Monte Carlo Tree Search (MCTS) with Polynomial Upper Confidence Trees (PUCT), zero-sum adversarial minimax turn inversion, stochastic partner modeling, and real-time decision-tree visualization.
