@@ -47,26 +47,38 @@ export default function BughouseApp() {
   // Theme switcher: Default to "chill" light mode, with option to switch to dark
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
+  // Mobile tab selector for phone screens: Board A | Board B | Both | MCTS Tree
+  const [mobileTab, setMobileTab] = useState<"boardA" | "boardB" | "both" | "mcts">("boardA");
+
   useEffect(() => {
-    const saved = localStorage.getItem("bughouse_theme") as "light" | "dark" | null;
-    if (saved === "dark" || saved === "light") {
-      setTheme(saved);
-      if (saved === "dark") {
-        document.documentElement.classList.add("dark");
+    try {
+      const saved = localStorage.getItem("bughouse_theme") as "light" | "dark" | null;
+      if (saved === "dark" || saved === "light") {
+        setTheme(saved);
+        if (saved === "dark") {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
       } else {
+        setTheme("light");
         document.documentElement.classList.remove("dark");
       }
-    } else {
+    } catch {
+      // In mobile private browsing or restricted environments, fallback gracefully
       setTheme("light");
-      document.documentElement.classList.remove("dark");
     }
   }, []);
 
   const toggleTheme = () => {
-    const next = theme === "light" ? "dark" : "light";
-    setTheme(next);
-    localStorage.setItem("bughouse_theme", next);
-    if (next === "dark") {
+    const nextTheme = theme === "light" ? "dark" : "light";
+    setTheme(nextTheme);
+    try {
+      localStorage.setItem("bughouse_theme", nextTheme);
+    } catch {
+      // Fallback if localStorage quota/permissions blocked
+    }
+    if (nextTheme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
@@ -198,18 +210,18 @@ export default function BughouseApp() {
 
   return (
     <main
-      className={`h-screen max-h-screen flex flex-col ${
+      className={`min-h-screen lg:h-screen lg:max-h-screen flex flex-col ${
         theme === "dark" ? "dark bg-slate-950 text-slate-100" : "bg-[#f8fafc] text-slate-800"
-      } overflow-hidden select-none p-2 sm:p-2.5 gap-2 transition-colors`}
+      } overflow-y-auto lg:overflow-hidden p-1.5 sm:p-2.5 gap-2 transition-colors touch-manipulation`}
     >
       {/* ========================================================= */}
       {/* 1. TOP MINIMAL NAVIGATION BAR                             */}
       {/* ========================================================= */}
-      <header className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs dark:shadow-lg shrink-0 transition-colors">
-        {/* Title & Live Status */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="relative w-7 h-7 rounded-lg overflow-hidden shadow-xs ring-1 ring-slate-900/10 dark:ring-white/15 shrink-0 bg-black">
+      <header className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs dark:shadow-lg shrink-0 transition-colors">
+        {/* Top line on mobile: Logo + Title + Status + Mobile Quick Actions */}
+        <div className="flex items-center justify-between sm:justify-start gap-2">
+          <div className="flex items-center gap-2">
+            <div className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-lg overflow-hidden shadow-xs ring-1 ring-slate-900/10 dark:ring-white/15 shrink-0 bg-black">
               <Image
                 src="/logo.png"
                 alt="Bughouse AI Logo"
@@ -219,44 +231,62 @@ export default function BughouseApp() {
                 priority
               />
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">BUGHOUSE AI</span>
-            </div>
+            <span className="text-xs sm:text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
+              BUGHOUSE AI
+            </span>
           </div>
 
           {/* Turn / Round Status Badge */}
           {game.isGameOver ? (
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40 flex items-center gap-1">
+            <span className="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40 flex items-center gap-1">
               <Trophy className="w-3 h-3 text-amber-500 dark:text-amber-400" />
               {game.winner === "Team1" ? "Team 1 Victory!" : game.winner === "Team2" ? "Team 2 Victory!" : "Draw!"}
             </span>
           ) : gameMode === "human" ? (
             game.boardA.turn() === "w" && game.history.filter((h) => h.board === "B").length >= game.history.filter((h) => h.board === "A").length ? (
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-700/60 text-emerald-700 dark:text-emerald-300 animate-pulse">
+              <span className="text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-700/60 text-emerald-700 dark:text-emerald-300 animate-pulse">
                 Your Turn (White)
               </span>
             ) : isSearching ? (
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-700/60 text-amber-800 dark:text-amber-300 animate-pulse">
-                AI Thinking (Board {currentActiveBoard})...
+              <span className="text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-700/60 text-amber-800 dark:text-amber-300 animate-pulse">
+                AI Thinking...
               </span>
             ) : (
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-transparent">
+              <span className="text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-transparent">
                 Partner Responding...
               </span>
             )
           ) : isSearching ? (
-            <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-700/60 text-amber-800 dark:text-amber-300 animate-pulse">
+            <span className="text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-700/60 text-amber-800 dark:text-amber-300 animate-pulse">
               Simulating Board {currentActiveBoard}...
             </span>
           ) : (
-            <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-transparent">
+            <span className="text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-transparent">
               Spectator Mode
             </span>
           )}
+
+          {/* Quick buttons on mobile: Theme & Reset */}
+          <div className="flex sm:hidden items-center gap-1">
+            <button
+              onClick={toggleTheme}
+              className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 cursor-pointer shadow-xs"
+              title="Toggle Theme"
+            >
+              {theme === "light" ? <Sun className="w-3.5 h-3.5 text-amber-500" /> : <Moon className="w-3.5 h-3.5 text-indigo-400" />}
+            </button>
+            <button
+              onClick={resetGame}
+              className="p-1 rounded-lg bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950 text-slate-700 hover:text-rose-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 cursor-pointer shadow-xs"
+              title="Reset Game"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
-        {/* Center Controls: Game Mode & Auto-Play */}
-        <div className="flex items-center gap-2 text-xs">
+        {/* Row 2 on mobile, center section on desktop: Game Mode & Auto-Play */}
+        <div className="flex items-center justify-between sm:justify-center gap-2 text-xs">
           {/* Mode Switcher */}
           <div className="flex items-center bg-slate-100 dark:bg-slate-950 rounded-lg p-0.5 border border-slate-200 dark:border-slate-800">
             <button
@@ -327,9 +357,8 @@ export default function BughouseApp() {
           )}
         </div>
 
-        {/* Right Action Buttons: Theme Switcher, Rules & New Game */}
-        <div className="flex items-center gap-1.5 text-xs">
-          {/* Light / Dark Mode Toggle */}
+        {/* Desktop-only Right Action Buttons: Theme Switcher & New Game */}
+        <div className="hidden sm:flex items-center gap-1.5 text-xs">
           <button
             onClick={toggleTheme}
             className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-semibold border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer shadow-xs"
@@ -360,17 +389,86 @@ export default function BughouseApp() {
       </header>
 
       {/* ========================================================= */}
+      {/* MOBILE TAB SELECTOR (VISIBLE ONLY ON MOBILE < LG)         */}
+      {/* ========================================================= */}
+      <div className="lg:hidden flex items-center justify-between bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-1 shadow-xs shrink-0">
+        <div className="grid grid-cols-4 gap-1 w-full text-xs">
+          <button
+            onClick={() => setMobileTab("boardA")}
+            className={`py-1.5 px-1 rounded-lg font-bold flex items-center justify-center gap-1 transition-all text-[11px] cursor-pointer ${
+              mobileTab === "boardA"
+                ? "bg-blue-600 text-white shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            <span>Board A</span>
+            {game.boardA.turn() === "w" && !game.isGameOver && (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            )}
+          </button>
+          <button
+            onClick={() => setMobileTab("boardB")}
+            className={`py-1.5 px-1 rounded-lg font-bold flex items-center justify-center gap-1 transition-all text-[11px] cursor-pointer ${
+              mobileTab === "boardB"
+                ? "bg-amber-600 text-white shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            <span>Board B</span>
+            {game.boardB.turn() === "w" && !game.isGameOver && (
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            )}
+          </button>
+          <button
+            onClick={() => setMobileTab("both")}
+            className={`py-1.5 px-1 rounded-lg font-bold flex items-center justify-center gap-1 transition-all text-[11px] cursor-pointer ${
+              mobileTab === "both"
+                ? "bg-slate-700 text-white shadow-xs dark:bg-slate-600"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            <span>Both</span>
+          </button>
+          <button
+            onClick={() => setMobileTab("mcts")}
+            className={`py-1.5 px-1 rounded-lg font-bold flex items-center justify-center gap-1 transition-all text-[11px] cursor-pointer ${
+              mobileTab === "mcts"
+                ? "bg-indigo-600 text-white shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            <Cpu className="w-3 h-3" />
+            <span>AI Tree</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ========================================================= */}
       {/* 2. MAIN COCKPIT: DUAL BOARDS (LEFT) + MCTS TREE (RIGHT)   */}
       {/* ========================================================= */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-2.5 overflow-hidden">
         {/* --------------------------------------------------------- */}
         {/* LEFT COLUMN: THE GAME ARENA (BOARD A & BOARD B)           */}
         {/* --------------------------------------------------------- */}
-        <div className="lg:col-span-7 flex flex-col min-h-0 gap-2 overflow-hidden">
-          {/* Dual Boards Container (Side-by-Side) */}
-          <div className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-hidden">
+        <div
+          className={`lg:col-span-7 flex flex-col min-h-0 gap-2 overflow-hidden ${
+            mobileTab === "mcts" ? "hidden lg:flex" : "flex"
+          }`}
+        >
+          {/* Dual Boards Container (Side-by-Side on desktop, controlled by tabs on mobile) */}
+          <div
+            className={`flex-1 min-h-0 ${
+              mobileTab === "both"
+                ? "flex flex-col gap-2 overflow-y-auto"
+                : "grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-hidden"
+            }`}
+          >
             {/* Board A Card */}
-            <div className="bg-white/90 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-lg flex flex-col justify-between items-center gap-1 overflow-hidden transition-colors">
+            <div
+              className={`bg-white/90 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-lg flex flex-col justify-between items-center gap-1 overflow-hidden transition-colors ${
+                mobileTab === "boardB" ? "hidden lg:flex" : "flex"
+              }`}
+            >
               {/* Board A Header */}
               <div className="w-full flex items-center justify-between pb-1 border-b border-slate-200 dark:border-slate-800 shrink-0">
                 <div className="flex items-center gap-1.5">
@@ -410,7 +508,7 @@ export default function BughouseApp() {
                   isGameOver={game.isGameOver}
                   winner={game.winner}
                   winProbability={currentMCTSResult?.team1WinProbability}
-                  className="h-[264px] sm:h-[288px]"
+                  className="h-[min(calc(100vw-88px),288px)] sm:h-[264px] md:h-[280px] xl:h-[288px]"
                   orientation="vertical"
                 />
                 <ChessboardView
@@ -439,7 +537,11 @@ export default function BughouseApp() {
             </div>
 
             {/* Board B Card */}
-            <div className="bg-white/90 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-lg flex flex-col justify-between items-center gap-1 overflow-hidden transition-colors">
+            <div
+              className={`bg-white/90 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-lg flex flex-col justify-between items-center gap-1 overflow-hidden transition-colors ${
+                mobileTab === "boardA" ? "hidden lg:flex" : "flex"
+              }`}
+            >
               {/* Board B Header */}
               <div className="w-full flex items-center justify-between pb-1 border-b border-slate-200 dark:border-slate-800 shrink-0">
                 <div className="flex items-center gap-1.5">
@@ -529,7 +631,13 @@ export default function BughouseApp() {
         {/* --------------------------------------------------------- */}
         {/* RIGHT COLUMN: MCTS DECISION ENGINE & LIVE SEARCH TREE     */}
         {/* --------------------------------------------------------- */}
-        <div className="lg:col-span-5 flex flex-col min-h-0 gap-2 overflow-hidden">
+        <div
+          className={`lg:col-span-5 flex flex-col min-h-0 gap-2 overflow-hidden ${
+            mobileTab === "mcts" || mobileTab === "both"
+              ? "flex min-h-[480px] lg:min-h-0"
+              : "hidden lg:flex"
+          }`}
+        >
           {/* Upper Section: MCTS Cognitive Metrics & Decision Banner */}
           <div className="shrink-0">
             <MCTSVisualizer
@@ -542,7 +650,7 @@ export default function BughouseApp() {
           </div>
 
           {/* Lower Section: The Interactive MCTS Search Tree Explorer (ALWAYS VISIBLE!) */}
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-[300px] lg:min-h-0 flex flex-col overflow-hidden">
             <MCTSTreeGraph
               tree={currentMCTSResult?.treeSnapshot || null}
               principalVariation={currentMCTSResult?.principalVariation || []}

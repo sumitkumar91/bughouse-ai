@@ -56,7 +56,7 @@ export const ReservePocket: React.FC<ReservePocketProps> = ({
                 if (!canDrop) return;
                 onSelectDropPiece(isSelected ? null : p);
               }}
-              className={`relative flex items-center justify-center w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-md transition-all ${
+              className={`relative flex items-center justify-center w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-md transition-all touch-manipulation ${
                 isSelected
                   ? "bg-amber-400/30 ring-2 ring-amber-500 scale-105"
                   : count > 0

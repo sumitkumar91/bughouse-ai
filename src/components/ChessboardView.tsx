@@ -122,8 +122,8 @@ export const ChessboardView: React.FC<ChessboardViewProps> = ({
         <div
           className={`grid grid-cols-8 grid-rows-8 transition-all ${
             compact
-              ? "w-[264px] h-[264px] sm:w-[288px] h-[288px]"
-              : "w-[272px] h-[272px] sm:w-[296px] sm:h-[296px] xl:w-[320px] xl:h-[320px] 2xl:w-[344px] 2xl:h-[344px]"
+              ? "w-[min(calc(100vw-88px),288px)] h-[min(calc(100vw-88px),288px)] sm:w-[264px] sm:h-[264px] md:w-[280px] md:h-[280px] xl:w-[288px] xl:h-[288px]"
+              : "w-[min(calc(100vw-64px),340px)] h-[min(calc(100vw-64px),340px)] sm:w-[296px] sm:h-[296px] xl:w-[320px] xl:h-[320px] 2xl:w-[344px] 2xl:h-[344px]"
           }`}
         >
           {RANKS.map((r, rIdx) =>
@@ -145,8 +145,10 @@ export const ChessboardView: React.FC<ChessboardViewProps> = ({
               return (
                 <div
                   key={sq}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleSquareClick(sq)}
-                  className={`relative flex items-center justify-center cursor-pointer transition-colors ${squareBg}`}
+                  className={`relative flex items-center justify-center cursor-pointer transition-colors touch-manipulation select-none ${squareBg}`}
                 >
                   {/* File & Rank labels */}
                   {f === "a" && (
@@ -190,14 +192,14 @@ export const ChessboardView: React.FC<ChessboardViewProps> = ({
 
                   {/* Piece Graphic */}
                   {piece && (
-                    <div className="relative z-10">
+                    <div className="relative z-10 w-full h-full flex items-center justify-center p-0.5">
                       <ChessPieceIcon
                         type={piece.type}
                         color={piece.color as PlayerColor}
                         className={
                           compact
-                            ? "w-6 h-6 sm:w-7 sm:h-7"
-                            : "w-7 h-7 sm:w-8 sm:h-8 xl:w-9 xl:h-9"
+                            ? "w-[82%] h-[82%] max-w-7 max-h-7 sm:w-7 sm:h-7"
+                            : "w-[82%] h-[82%] max-w-8 max-h-8 sm:w-8 sm:h-8 xl:w-9 xl:h-9"
                         }
                       />
                     </div>
