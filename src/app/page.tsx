@@ -5,11 +5,9 @@ import Image from "next/image";
 import { BughouseGame } from "@/engine/bughouseGame";
 import { BughouseMCTS } from "@/ai/mcts";
 import { BoardId, BughouseMove, ReservePiece } from "@/engine/types";
-import { evaluateBughousePosition } from "@/engine/evaluation";
 import { MCTSResult } from "@/ai/types";
 import { ChessboardView } from "@/components/ChessboardView";
 import { ReservePocket } from "@/components/ReservePocket";
-import { EvalBar } from "@/components/EvalBar";
 import { MCTSVisualizer } from "@/components/MCTSVisualizer";
 import { MCTSTreeGraph } from "@/components/MCTSTreeGraph";
 import {
@@ -206,7 +204,6 @@ export default function BughouseApp() {
       : undefined;
 
   const currentMCTSResult = mctsResults[selectedVisualizerBoard];
-  const globalEvalCentipawns = evaluateBughousePosition(game);
 
   return (
     <main
@@ -501,16 +498,8 @@ export default function BughouseApp() {
                 />
               </div>
 
-              {/* Board A Chessboard with Vertical Eval Bar */}
-              <div className="flex-1 min-h-0 flex items-center justify-center gap-1.5">
-                <EvalBar
-                  evalCentipawns={globalEvalCentipawns}
-                  isGameOver={game.isGameOver}
-                  winner={game.winner}
-                  winProbability={currentMCTSResult?.team1WinProbability}
-                  className="h-[min(calc(100vw-88px),288px)] sm:h-[264px] md:h-[280px] xl:h-[288px]"
-                  orientation="vertical"
-                />
+              {/* Board A Chessboard */}
+              <div className="flex-1 min-h-0 flex items-center justify-center">
                 <ChessboardView
                   boardId="A"
                   board={game.boardA}
